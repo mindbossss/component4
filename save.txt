@@ -1,0 +1,120 @@
+controller file
+<?php
+
+namespace App\Http\Controllers\Frontend;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
+use App\Models\Prescription;
+
+class indexController extends Controller
+{
+    public function index()
+    {
+       return view('frontend.index');
+    }
+    public function book()
+    {
+       return view('frontend.book');
+    }
+
+    public function storeForm(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:10',
+            'prescription_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $prescription = new prescription;
+        $prescription->name = $request->name;
+        $prescription->email = $request->email;
+        $prescription->phone = $request->phone;
+
+        if ($request->hasFile('prescription_image')) {
+            $imagePath = $request->file('prescription_image')->store('prescriptions');
+            $prescription->prescription_image = $imagePath;
+        }
+
+        $prescription->save();
+
+        return redirect('/prescription-form')->with('success', 'Prescription submitted successfully!');
+    }
+
+}
+
+blade file
+@extends('frontend.pages.main')
+@section('main')
+       <center><h1>Welcome to Lab Test Hub</h1></center>
+
+       <div class="account-page">
+        <div class="container">
+            <div class="row">
+                <div class="col-1">
+                    <div class="form-conatainer-register">
+                        <div class="form-btn-register">
+                            <span>Upload Your Prescription</span>
+                        </div>
+                        <!-- resources/views/prescription/form.blade.php -->
+
+                        <form action="/prescription-form" method="post">
+                         @csrf
+                           <label for="name">Name:</label>
+                           <input type="text" name="name" required>
+
+                            <label for="email">Email:</label>
+                            <input type="email" name="email" required>
+
+                            <label for="phone">Phone:</label>
+                            <input type="text" name="phone" required>
+
+                            <label for="prescription_image">Prescription Image:</label>
+                            <input type="file" name="prescription_image" accept="image/*" required>
+
+                             <button type="submit">Submit</button>
+                         </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@endsection
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('prescriptions', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->nullable();
+            $table->string('phone');
+            $table->string('prescription_image');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('prescriptions');
+    }
+};
+
+migration file
+
